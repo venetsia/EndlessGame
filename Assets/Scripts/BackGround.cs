@@ -18,83 +18,105 @@ public class BackGround : MonoBehaviour {
             transform.position = pos;
         }
     }*/
-    public GameObject[] availableRooms;
-    public List<GameObject> currentRooms;
-    private float screenWidthInPoints;
+    public float Speed = 1;
+    public List<SpriteRenderer> sprites = new List<SpriteRenderer>();
+    public Direction Dir = Direction.Right;
 
-    private void Start()
+
+    private float heightCamera;
+    private float widthCamera;
+
+    private Vector3 PositionCam;
+    private Camera cam;
+
+    private void Awake()
     {
-        float height = 2.0f * Camera.main.orthographicSize;
-        screenWidthInPoints = height * Camera.main.aspect;
-        StartCoroutine(GeneratorCheck());
-    }
-    void AddRoom(float farthestRoomEndX)
-    {
-        //1
-        int randomRoomIndex = Random.Range(0, availableRooms.Length);
-        //2
-        GameObject room = (GameObject)Instantiate(availableRooms[randomRoomIndex]);
-        //3
-        float roomWidth = room.transform.Find("floor").localScale.x;
-        //4
-        float roomCenter = farthestRoomEndX + roomWidth * 0.5f;
-        //5
-        room.transform.position = new Vector3(roomCenter, 0, 0);
-        //6
-        currentRooms.Add(room);
-    }
-    private void GenerateRoomIfRequired()
-    {
-        //1
-        List<GameObject> roomsToRemove = new List<GameObject>();
-        //2
-        bool addRooms = true;
-        //3
-        float playerX = transform.position.x;
-        //4
-        float removeRoomX = playerX - screenWidthInPoints;
-        //5
-        float addRoomX = playerX + screenWidthInPoints;
-        //6
-        float farthestRoomEndX = 0;
-        foreach (var room in currentRooms)
-        {
-            //7
-            float roomWidth = room.transform.Find("1rstGround").localScale.x;
-            float roomStartX = room.transform.position.x - (roomWidth * 0.5f);
-            float roomEndX = roomStartX + roomWidth;
-            //8
-            if (roomStartX > addRoomX)
-            {
-                addRooms = false;
-            }
-            //9
-            if (roomEndX < removeRoomX)
-            {
-                roomsToRemove.Add(room);
-            }
-            //10
-            farthestRoomEndX = Mathf.Max(farthestRoomEndX, roomEndX);
-        }
-        //11
-        foreach (var room in roomsToRemove)
-        {
-            currentRooms.Remove(room);
-            Destroy(room);
-        }
-        //12
-        if (addRooms)
-        {
-            AddRoom(farthestRoomEndX);
-        }
-    }
-    private IEnumerator GeneratorCheck()
-    {
-        while (true)
-        {
-            GenerateRoomIfRequired();
-            yield return new WaitForSeconds(0.25f);
-        }
+        cam = Camera.main;
+        heightCamera = 2f * cam.orthographicSize;
+        widthCamera = heightCamera * cam.aspect;
     }
 
+    void Update()
+    {
+        foreach (var item in sprites)
+        {
+            if (Dir == Direction.Left)
+            {
+                if (item.transform.position.x + item.bounds.size.x / 2 < cam.transform.position.x - widthCamera / 2)
+                {
+                    SpriteRenderer sprite = sprites[0];
+                    foreach (var i in sprites)
+                    {
+                        if (i.transform.position.x > sprite.transform.position.x)
+                            sprite = i;
+                    }
+
+                    item.transform.position = new Vector2((sprite.transform.position.x + (sprite.bounds.size.x / 2) + (item.bounds.size.x / 2)), sprite.transform.position.y);
+                }
+            }
+            else if (Dir == Direction.Right)
+            {
+                if (item.transform.position.x - item.bounds.size.x / 2 > cam.transform.position.x + widthCamera / 2)
+                {
+                    SpriteRenderer sprite = sprites[0];
+                    foreach (var i in sprites)
+                    {
+                        if (i.transform.position.x < sprite.transform.position.x)
+                            sprite = i;
+                    }
+
+                    item.transform.position = new Vector2((sprite.transform.position.x - (sprite.bounds.size.x / 2) - (item.bounds.size.x / 2)), sprite.transform.position.y);
+                }
+            }
+            else if (Dir == Direction.Down)
+            {
+                if (item.transform.position.y + item.bounds.size.y / 2 < cam.transform.position.y - heightCamera / 2)
+                {
+                    SpriteRenderer sprite = sprites[0];
+                    foreach (var i in sprites)
+                    {
+                        if (i.transform.position.y > sprite.transform.position.y)
+                            sprite = i;
+                    }
+
+                    item.transform.position = new Vector2(sprite.transform.position.x, (sprite.transform.position.y + (sprite.bounds.size.y / 2) + (item.bounds.size.y / 2)));
+                }
+            }
+            else if (Dir == Direction.Up)
+            {
+                if (item.transform.position.y - item.bounds.size.y / 2 > cam.transform.position.y + heightCamera / 2)
+                {
+                    SpriteRenderer sprite = sprites[0];
+                    foreach (var i in sprites)
+                    {
+                        if (i.transform.position.y < sprite.transform.position.y)
+                            sprite = i;
+                    }
+
+                    item.transform.position = new Vector2(sprite.transform.position.x, (sprite.transform.position.y - (sprite.bounds.size.y / 2) - (item.bounds.size.y / 2)));
+                }
+            }
+
+
+            if (Dir == Direction.Left)
+                item.transform.Translate(new Vector2(Time.deltaTime * Speed * -1, 0));
+            else if (Dir == Direction.Right)
+                item.transform.Translate(new Vector2(Time.deltaTime * Speed, 0));
+            else if (Dir == Direction.Down)
+                item.transform.Translate(new Vector2(0, Time.deltaTime * Speed * -1));
+            else if (Dir == Direction.Up)
+                item.transform.Translate(new Vector2(0, Time.deltaTime * Speed));
+        }
+
+    }
 }
+
+public enum Direction
+{
+    Up,
+    Down,
+    Left,
+    Right
+}
+
+
