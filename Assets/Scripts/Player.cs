@@ -5,7 +5,7 @@ using UnityEngine.SceneManagement;
 
 public class Player : MonoBehaviour {
 
-    private Vector2 targetPos;
+    //private Vector2 targetPos;
     public float Yincrement;
 
     public float speed;
@@ -23,7 +23,7 @@ public class Player : MonoBehaviour {
     {
         
         var rb = GetComponent<Rigidbody2D>();
-        var effectRb = GetComponent<Collider>();
+        
         
         var constr = rb.constraints; //grab a copy (NOT a reference)
         constr = RigidbodyConstraints2D.FreezePositionX; //(modify the copy)
@@ -37,24 +37,36 @@ public class Player : MonoBehaviour {
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
         }
 
-        transform.position = Vector2.MoveTowards(transform.position, targetPos, speed * Time.deltaTime);
-      
+        //transform.position = Vector2.MoveTowards(transform.position, targetPos, speed * Time.deltaTime);
 
 
 
-        if (Input.GetKeyDown(KeyCode.UpArrow) && transform.position.y < maxHeight)
+
+        /* if (Input.GetKeyDown(KeyCode.UpArrow) && transform.position.y < maxHeight)
+         {
+
+
+             Instantiate(effect, transform.position + SlashOffset, transform.rotation);
+             targetPos = new Vector2(transform.position.x, transform.position.y + Yincrement);
+
+         }
+         else if (Input.GetKeyDown(KeyCode.DownArrow) && transform.position.y > minHeight)
+         {
+
+             Instantiate(effect, transform.position + SlashOffset, Quaternion.identity);
+             targetPos = new Vector2(transform.position.x, transform.position.y - Yincrement);
+         }*/
+        if (Input.touchCount > 0)
         {
-            
-            
-            Instantiate(effect, transform.position + SlashOffset, transform.rotation);
-            targetPos = new Vector2(transform.position.x, transform.position.y + Yincrement);
-            
+            Touch touch = Input.GetTouch(0); // get first touch since touch count is greater than zero
+
+            if (touch.phase == TouchPhase.Stationary || touch.phase == TouchPhase.Moved)
+            {
+                // get the touch position from the screen touch to world point
+                Vector3 touchedPos = Camera.main.ScreenToWorldPoint(new Vector3(touch.position.x, touch.position.y, 10));
+                // lerp and set the position of the current object to that of the touch, but smoothly over time.
+                transform.position = Vector3.Lerp(transform.position, touchedPos, Time.deltaTime);
+            }
         }
-        else if (Input.GetKeyDown(KeyCode.DownArrow) && transform.position.y > minHeight)
-        {
-           
-            Instantiate(effect, transform.position + SlashOffset, Quaternion.identity);
-            targetPos = new Vector2(transform.position.x, transform.position.y - Yincrement);
-        }
-	}
+    }
 }
